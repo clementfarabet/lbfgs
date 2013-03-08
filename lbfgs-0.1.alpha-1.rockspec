@@ -23,6 +23,6 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      ['lbfgs.init'] = 'lbfgs.lua',
+      ['lbfgs.init'] = 'init.lua',
    }
 }
