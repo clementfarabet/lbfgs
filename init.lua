@@ -490,15 +490,20 @@ void lbfgs_free(lbfgsfloatval_t *x);
 local C = ffi.load('lbfgs')
 require 'torchffi'
 
-local function lbfgs(opfunc, x, options)
+local function lbfgs(opfunc, x, state)
    -- Verbose?
-   local report = options.report
-   options.report = nil
+   local report = state.report
+   state.report = nil
 
    -- Init state:
-   local lbfgs_state = ffi.new('lbfgs_parameter_t[1]')
-   C.lbfgs_parameter_init(lbfgs_state)
-   for name,val in pairs(options) do
+   local lbfgs_state
+   if state.lbfgs_state then
+      lbfgs_state = state.lbfgs_state
+   else
+      lbfgs_state = ffi.new('lbfgs_parameter_t[1]')
+      C.lbfgs_parameter_init(lbfgs_state)
+   end
+   for name,val in pairs(state) do
       if type(val) == 'number' then
          lbfgs_state[0][name] = val
       elseif C[val] then
@@ -507,7 +512,6 @@ local function lbfgs(opfunc, x, options)
          lbfgs_state[0][name] = val
       end
    end
-   -- lbfgs_state[0].linesearch = C.LBFGS_LINESEARCH_BACKTRACKING
 
    -- Trainable parameters:
    local n = x:size(1)
