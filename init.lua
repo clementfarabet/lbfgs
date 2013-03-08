@@ -502,9 +502,11 @@ local function lbfgs(opfunc, x, state)
       lbfgs_state = ffi.new('lbfgs_parameter_t[1]')
       C.lbfgs_parameter_init(lbfgs_state)
       state.lbfgs_state = lbfgs_state
+      state.feval = 0
+      state.iter = 0
    end
    for name,val in pairs(state) do
-      if name ~= 'report' and name ~= 'lbfgs_state' then
+      if name ~= 'report' and name ~= 'lbfgs_state' and name ~= 'feval' and name ~= 'iter' then
          if type(val) == 'number' then
             lbfgs_state[0][name] = val
          elseif C[val] then
@@ -532,14 +534,15 @@ local function lbfgs(opfunc, x, state)
    end)
 
    -- Progress function:
-   local feval = 0
    progress = ffi.cast('lbfgs_progress_t', function(self,xp,gp,fx,xnorm,gnorm,step,n,k,ls)
-      feval = feval + ls
+      state.feval = state.feval + ls
+      state.iter = state.iter + 1
       if report then
          report({
             fx = fx, xnorm = xnorm, gnorm = gnorm,
             stepSize = step, iterations = k, linesearches = ls,
-            fevaluations = feval
+            fevaluations = state.feval,
+            alliterations = state.iter,
          })
       end
       return 0
