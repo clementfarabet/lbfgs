@@ -492,7 +492,7 @@ require 'torchffi'
 
 local function lbfgs(opfunc, x, options)
    -- Verbose?
-   local verbose = options.verbose
+   local report = options.report
 
    -- Init state:
    local lbfgs_state = ffi.new('lbfgs_parameter_t[1]')
@@ -516,12 +516,15 @@ local function lbfgs(opfunc, x, options)
    end)
 
    -- Progress function:
+   local feval = 0
    progress = ffi.cast('lbfgs_progress_t', function(self,xp,gp,fx,xnorm,gnorm,step,n,k,ls)
-      if verbose then
-         print('==> iteration #'..k)
-         print('    + f(x) = ' .. fx)
-         print('    + norm(x) = ' .. xnorm)
-         print('    + norm(g) = ' .. gnorm)
+      feval = feval + ls
+      if report then
+         report({
+            fx = fx, xnorm = xnorm, gnorm = gnorm,
+            stepSize = step, iterations = k, linesearches = ls,
+            fevaluations = feval
+         })
       end
       return 0
    end)
