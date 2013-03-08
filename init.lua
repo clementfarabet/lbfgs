@@ -493,7 +493,6 @@ require 'torchffi'
 local function lbfgs(opfunc, x, state)
    -- Verbose?
    local report = state.report
-   state.report = nil
 
    -- Init state:
    local lbfgs_state
@@ -504,12 +503,14 @@ local function lbfgs(opfunc, x, state)
       C.lbfgs_parameter_init(lbfgs_state)
    end
    for name,val in pairs(state) do
-      if type(val) == 'number' then
-         lbfgs_state[0][name] = val
-      elseif C[val] then
-         lbfgs_state[0][name] = C[val]
-      else
-         lbfgs_state[0][name] = val
+      if name ~= 'report' then
+         if type(val) == 'number' then
+            lbfgs_state[0][name] = val
+         elseif C[val] then
+            lbfgs_state[0][name] = C[val]
+         else
+            lbfgs_state[0][name] = val
+         end
       end
    end
 
