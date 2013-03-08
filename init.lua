@@ -501,9 +501,10 @@ local function lbfgs(opfunc, x, state)
    else
       lbfgs_state = ffi.new('lbfgs_parameter_t[1]')
       C.lbfgs_parameter_init(lbfgs_state)
+      state.lbfgs_state = lbfgs_state
    end
    for name,val in pairs(state) do
-      if name ~= 'report' then
+      if name ~= 'report' and name ~= 'lbfgs_state' then
          if type(val) == 'number' then
             lbfgs_state[0][name] = val
          elseif C[val] then
